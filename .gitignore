@@ -1,3 +1,7 @@
+build/bin
+frontend/dist
+frontend/node_modules
+
 # Go
 *.exe
 *.exe~
@@ -7,12 +11,6 @@
 *.test
 *.out
 vendor/
-go.sum
-
-# Wails
-build/bin/
-frontend/node_modules/
-frontend/dist/
 
 # SQLite
 *.db
@@ -29,6 +27,3 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
-
-# App data
-~/.webhook-debugger/
