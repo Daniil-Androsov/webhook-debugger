@@ -9,13 +9,16 @@ import (
 	"time"
 
 	"webhook-debugger/backend"
+
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type App struct {
-	ctx    context.Context
-	db     *backend.DB
-	server *backend.Server
+	ctx       context.Context
+	db        *backend.DB
+	server    *backend.Server
+	tunnel    *backend.Tunnel
+	TunnelURL string
 }
 
 func NewApp() *App {
@@ -42,6 +45,9 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) shutdown(ctx context.Context) {
+	if a.tunnel != nil {
+		a.tunnel.Stop()
+	}
 	if a.server != nil {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -72,6 +78,31 @@ func (a *App) GetRequest(id int) backend.Request {
 
 func (a *App) SetForwardURL(url string) {
 	a.server.SetForwardURL(url)
+}
+
+func (a *App) StartTunnel() (string, error) {
+	if a.tunnel != nil {
+		return a.TunnelURL, nil
+	}
+
+	t, err := backend.StartTunnel(9000)
+	if err != nil {
+		return "", err
+	}
+
+	a.tunnel = t
+	a.TunnelURL = t.URL
+	runtime.EventsEmit(a.ctx, "tunnel_started", t.URL)
+	return t.URL, nil
+}
+
+func (a *App) StopTunnel() {
+	if a.tunnel != nil {
+		a.tunnel.Stop()
+		a.tunnel = nil
+		a.TunnelURL = ""
+		runtime.EventsEmit(a.ctx, "tunnel_stopped", nil)
+	}
 }
 
 func (a *App) ReplayRequest(id int, targetURL string) error {
