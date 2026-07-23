@@ -62,7 +62,7 @@ func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 		Headers:   headers,
 		Body:      string(bodyBytes),
 		Source:    r.RemoteAddr,
-		CreatedAt: time.Now().UTC(),
+		CreatedAt: time.Now().Local(),
 	}
 
 	status := http.StatusOK

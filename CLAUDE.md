@@ -32,6 +32,9 @@ go test ./backend/...
 
 # Run a single test
 go test ./backend/... -run TestName
+
+# Run tests with verbose output
+go test ./backend/... -v
 ```
 
 ## Architecture

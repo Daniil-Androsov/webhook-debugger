@@ -128,7 +128,7 @@ func scanRequest(s scanner) (Request, error) {
 		r.Headers = map[string]string{}
 	}
 
-	r.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAt)
+	r.CreatedAt, _ = time.ParseInLocation("2006-01-02 15:04:05", createdAt, time.Local)
 	return r, nil
 }
 
