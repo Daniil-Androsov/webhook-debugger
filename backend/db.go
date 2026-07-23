@@ -30,16 +30,17 @@ func NewDB() (*DB, error) {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return nil, err
 	}
+	return NewDBFromPath(filepath.Join(dir, "requests.db"))
+}
 
-	conn, err := sql.Open("sqlite", filepath.Join(dir, "requests.db"))
+func NewDBFromPath(path string) (*DB, error) {
+	conn, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, err
 	}
-
 	if err := migrate(conn); err != nil {
 		return nil, err
 	}
-
 	return &DB{conn: conn}, nil
 }
 

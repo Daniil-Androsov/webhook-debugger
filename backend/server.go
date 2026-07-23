@@ -25,11 +25,15 @@ func (s *Server) SetForwardURL(url string) {
 }
 
 func (s *Server) Start() error {
+	return s.StartOn(":9000")
+}
+
+func (s *Server) StartOn(addr string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.handle)
 
 	s.httpServer = &http.Server{
-		Addr:    ":9000",
+		Addr:    addr,
 		Handler: mux,
 	}
 
