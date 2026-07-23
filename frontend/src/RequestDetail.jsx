@@ -1,12 +1,73 @@
 import { useState } from 'react'
 
-function tryFormatJson(str) {
-  if (!str) return ''
-  try {
-    return JSON.stringify(JSON.parse(str), null, 2)
-  } catch {
-    return str
+// tokenize formatted JSON string into typed spans
+function tokenizeJson(str) {
+  const tokens = []
+  // regex: captures strings, numbers, booleans/null, keys, punctuation
+  const re = /("(?:\\.|[^"\\])*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(\btrue\b|\bfalse\b|\bnull\b)|([{}[\],])/g
+  let last = 0
+  let match
+
+  while ((match = re.exec(str)) !== null) {
+    if (match.index > last) {
+      tokens.push({ type: 'whitespace', value: str.slice(last, match.index) })
+    }
+
+    if (match[1] !== undefined) {
+      if (match[2]) {
+        // key: string followed by colon
+        tokens.push({ type: 'key', value: match[1] })
+        tokens.push({ type: 'punctuation', value: match[2] })
+      } else {
+        tokens.push({ type: 'string', value: match[1] })
+      }
+    } else if (match[3] !== undefined) {
+      tokens.push({ type: 'number', value: match[3] })
+    } else if (match[4] !== undefined) {
+      tokens.push({ type: 'keyword', value: match[4] })
+    } else if (match[5] !== undefined) {
+      tokens.push({ type: 'punctuation', value: match[5] })
+    }
+
+    last = re.lastIndex
   }
+
+  if (last < str.length) {
+    tokens.push({ type: 'whitespace', value: str.slice(last) })
+  }
+
+  return tokens
+}
+
+const TOKEN_CLASS = {
+  key:        'text-blue-300',
+  string:     'text-green-300',
+  number:     'text-orange-300',
+  keyword:    'text-purple-300',
+  punctuation:'text-gray-400',
+  whitespace: '',
+}
+
+function JsonHighlight({ body }) {
+  let parsed
+  try {
+    parsed = JSON.parse(body)
+  } catch {
+    return <pre className="text-xs text-gray-300 whitespace-pre-wrap break-all">{body}</pre>
+  }
+
+  const formatted = JSON.stringify(parsed, null, 2)
+  const tokens = tokenizeJson(formatted)
+
+  return (
+    <pre className="text-xs whitespace-pre-wrap break-all">
+      {tokens.map((tok, i) =>
+        tok.type === 'whitespace'
+          ? tok.value
+          : <span key={i} className={TOKEN_CLASS[tok.type]}>{tok.value}</span>
+      )}
+    </pre>
+  )
 }
 
 function buildRaw(request) {
@@ -118,9 +179,9 @@ export default function RequestDetail({ request, onReplay, onCopyCurl }) {
         )}
 
         {tab === 'Body' && (
-          <pre className="text-xs text-green-300 whitespace-pre-wrap break-all">
-            {tryFormatJson(request.body) || <span className="text-gray-600">No body</span>}
-          </pre>
+          request.body
+            ? <JsonHighlight body={request.body} />
+            : <span className="text-xs text-gray-600">No body</span>
         )}
 
         {tab === 'Raw' && (
