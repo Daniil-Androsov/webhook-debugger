@@ -132,6 +132,16 @@ func scanRequest(s scanner) (Request, error) {
 	return r, nil
 }
 
+func (d *DB) DeleteRequest(id int) error {
+	_, err := d.conn.Exec(`DELETE FROM requests WHERE id = ?`, id)
+	return err
+}
+
+func (d *DB) ClearRequests() error {
+	_, err := d.conn.Exec(`DELETE FROM requests`)
+	return err
+}
+
 func (d *DB) Close() error {
 	return d.conn.Close()
 }

@@ -34,11 +34,16 @@ export default function App() {
     runtime.EventsOn('tunnel_stopped', () => {
       setTunnelURL('')
     })
+    runtime.EventsOn('requests_cleared', () => {
+      setRequests([])
+      setSelected(null)
+    })
 
     return () => {
       runtime.EventsOff('new_request')
       runtime.EventsOff('tunnel_started')
       runtime.EventsOff('tunnel_stopped')
+      runtime.EventsOff('requests_cleared')
     }
   }, [])
 
@@ -67,6 +72,19 @@ export default function App() {
     }
   }
 
+  async function handleClearAll() {
+    if (!window.confirm('Clear all requests?')) return
+    await go?.ClearRequests()
+    setRequests([])
+    setSelected(null)
+  }
+
+  async function handleDeleteRequest(id) {
+    await go?.DeleteRequest(id)
+    setRequests(prev => prev.filter(r => r.id !== id))
+    if (selected?.id === id) setSelected(null)
+  }
+
   async function handleCopyCurl(id) {
     if (!go) return
     const curl = await go.ExportAsCurl(id)
@@ -90,7 +108,6 @@ export default function App() {
     <div className="flex flex-col h-screen bg-[#0d1117] text-[#e6edf3]">
       {/* toolbar */}
       <div className="flex items-center gap-3 px-4 py-2 border-b border-[#30363d] bg-[#161b22] shrink-0 flex-wrap">
-        {/* tunnel */}
         <button
           onClick={handleTunnel}
           disabled={tunnelLoading}
@@ -120,7 +137,6 @@ export default function App() {
           </span>
         )}
 
-        {/* forward */}
         <div className="flex items-center gap-2 ml-auto">
           <span className="text-xs text-gray-500">Forward →</span>
           <input
@@ -135,12 +151,13 @@ export default function App() {
         </div>
 
         {copied && <span className="text-xs text-green-400">Copied!</span>}
-        {requests.length > 0 && !copied && (
+
+        {requests.length > 0 && (
           <button
-            onClick={() => { setRequests([]); setSelected(null) }}
-            className="text-xs text-gray-600 hover:text-gray-400"
+            onClick={handleClearAll}
+            className="text-xs text-gray-600 hover:text-red-400 transition-colors"
           >
-            Clear
+            Clear All
           </button>
         )}
       </div>
@@ -152,6 +169,7 @@ export default function App() {
             requests={requests}
             selectedId={selected?.id}
             onSelect={setSelected}
+            onDelete={handleDeleteRequest}
           />
         </div>
         <div className="flex-1 overflow-hidden bg-[#0d1117]">

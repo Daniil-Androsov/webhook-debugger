@@ -19,7 +19,7 @@ function formatTime(ts) {
   return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
-export default function RequestList({ requests, selectedId, onSelect }) {
+export default function RequestList({ requests, selectedId, onSelect, onDelete }) {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {requests.length === 0 && (
@@ -31,7 +31,7 @@ export default function RequestList({ requests, selectedId, onSelect }) {
         <div
           key={r.id}
           onClick={() => onSelect(r)}
-          className={`flex items-center gap-2 px-3 py-2 border-b border-[#30363d] cursor-pointer select-none hover:bg-[#1f2937] transition-colors ${selectedId === r.id ? 'bg-[#1f2937] border-l-2 border-l-blue-500' : ''}`}
+          className={`group flex items-center gap-2 px-3 py-2 border-b border-[#30363d] cursor-pointer select-none hover:bg-[#1f2937] transition-colors ${selectedId === r.id ? 'bg-[#1f2937] border-l-2 border-l-blue-500' : ''}`}
         >
           <span className={`w-14 shrink-0 font-bold text-xs ${METHOD_COLORS[r.method] ?? 'text-gray-400'}`}>
             {r.method}
@@ -41,6 +41,13 @@ export default function RequestList({ requests, selectedId, onSelect }) {
             {r.status > 0 ? r.status : '—'}
           </span>
           <span className="text-gray-600 text-xs shrink-0">{formatTime(r.created_at)}</span>
+          <button
+            onClick={e => { e.stopPropagation(); onDelete(r.id) }}
+            className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 text-xs px-1 transition-opacity shrink-0"
+            title="Delete"
+          >
+            ✕
+          </button>
         </div>
       ))}
     </div>

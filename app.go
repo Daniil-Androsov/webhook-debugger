@@ -80,6 +80,18 @@ func (a *App) SetForwardURL(url string) {
 	a.server.SetForwardURL(url)
 }
 
+func (a *App) DeleteRequest(id int) error {
+	return a.db.DeleteRequest(id)
+}
+
+func (a *App) ClearRequests() error {
+	if err := a.db.ClearRequests(); err != nil {
+		return err
+	}
+	runtime.EventsEmit(a.ctx, "requests_cleared", nil)
+	return nil
+}
+
 func (a *App) StartTunnel() (string, error) {
 	if a.tunnel != nil {
 		return a.TunnelURL, nil
